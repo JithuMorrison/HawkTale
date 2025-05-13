@@ -92,7 +92,7 @@ class _HabitTrackerState extends State<HabitTracker> {
                 crossAxisCount: 1,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: _timeRange == 'Overall' ? 2 : 4.4,
+                childAspectRatio: _timeRange == 'Overall' ? 2 : 3,
               ),
               itemCount: _habits.length,
               itemBuilder: (context, index) {
@@ -152,7 +152,8 @@ class _HabitCard extends StatelessWidget {
       builder: (context, snapshot) {
         final daysCompleted = snapshot.data?['completed'] ?? 0;
         final totalDays = snapshot.data?['total_days'] ?? 0;
-        final progress = (totalDays > 0) ? daysCompleted / totalDays : 0.0;
+        final currentStreak = snapshot.data?['current_streak'] ?? 0;
+        final progress = (daysCompleted > 0) ? currentStreak / daysCompleted : 0.0;
 
         return GestureDetector(
           onTap: onTap,
@@ -170,20 +171,47 @@ class _HabitCard extends StatelessWidget {
                   Text(
                     habit.name,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   timeRange == 'Overall'
                       ? _buildGitHubStyleGrid(context)
-                      : Column(
+                      : Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 8,
-                        backgroundColor: Colors.grey[200],
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 8,
+                          backgroundColor: Colors.grey[200],
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      IconButton(
+                        icon: Icon(
+                          currentStreak > 0
+                              ? Icons.local_fire_department
+                              : Icons.check_circle_outline,
+                          color: currentStreak > 0 ? Colors.orange : Colors.green,
+                          size: 28,
+                        ),
+                        onPressed: () {
+                          // Optional: Show a tooltip or streak info
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                currentStreak > 0
+                                    ? '🔥 Current Streak: $currentStreak days'
+                                    : '✔️ No current streak',
+                              ),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        tooltip: currentStreak > 0 ? 'Current Streak' : 'No Streak',
                       ),
                     ],
                   ),
