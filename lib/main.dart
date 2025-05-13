@@ -195,7 +195,7 @@ class _HabitCard extends StatelessWidget {
                           currentStreak > 0
                               ? Icons.local_fire_department
                               : Icons.check_circle_outline,
-                          color: currentStreak > 0 ? Colors.orange : Colors.green,
+                          color: currentStreak > 0 ? Colors.orange : Colors.red,
                           size: 28,
                         ),
                         onPressed: () {
