@@ -19,6 +19,8 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
+    //await deleteDatabase(path);
+
     return await openDatabase(
       path,
       version: 1,
@@ -32,8 +34,7 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         habit_id INTEGER,
         date TEXT,
-        correct INTEGER,
-        wrong INTEGER,
+        completed INTEGER,
         days TEXT,
         FOREIGN KEY (habit_id) REFERENCES habits (id)
       )
@@ -55,33 +56,16 @@ class DatabaseHelper {
     ''');
   }
 
-  Future<Map<String, dynamic>> getCategoryStats(int habitId) async {
-    final db = await database;
-    final result = await db.rawQuery('''
-      SELECT 
-        SUM(correct) as total_correct,
-        SUM(wrong) as total_wrong
-      FROM stats
-      WHERE habit_id = ?
-    ''', [habitId]);
-
-    return {
-      'total_correct': result.first['total_correct'] ?? 0,
-      'total_wrong': result.first['total_wrong'] ?? 0,
-    };
-  }
-
   Future<List<Map<String, dynamic>>> getAllHabitCompletionHistory(int habitId) async {
     final db = await database;
     return await db.rawQuery('''
-    SELECT date, correct, wrong
+    SELECT date, completed
     FROM stats
     WHERE habit_id = ?
     ORDER BY date ASC
-  ''', [habitId]);
+    ''', [habitId]);
   }
 
-  // Habit operations
   Future<int> createHabit(Habit habit) async {
     final db = await database;
     return await db.insert('habits', habit.toMap());
@@ -128,8 +112,7 @@ class DatabaseHelper {
       return await db.update(
         'stats',
         {
-          'correct': completed ? 1 : 0,
-          'wrong': completed ? 0 : 1,
+          'completed': completed ? 1 : 0,
           'days': today,
         },
         where: 'habit_id = ? AND date = ?',
@@ -140,8 +123,7 @@ class DatabaseHelper {
       return await db.insert('stats', {
         'habit_id': habitId,
         'date': today,
-        'correct': completed ? 1 : 0,
-        'wrong': completed ? 0 : 1,
+        'completed': completed ? 1 : 0,
         'days': today,
       });
     }
@@ -151,24 +133,13 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.rawQuery('''
       SELECT 
-        SUM(correct) as completed,
-        SUM(wrong) as missed,
+        SUM(completed) as completed,
         COUNT(*) as total_days
       FROM stats
       WHERE habit_id = ?
     ''', [habitId]);
 
     return result.first;
-  }
-
-  Future<List<Map<String, dynamic>>> getHabitCompletionHistory(int habitId) async {
-    final db = await database;
-    return await db.rawQuery('''
-      SELECT date, correct, wrong
-      FROM stats
-      WHERE habit_id = ?
-      ORDER BY date DESC
-    ''', [habitId]);
   }
 
   Future close() async {

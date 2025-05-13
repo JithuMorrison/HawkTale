@@ -151,7 +151,6 @@ class _HabitCard extends StatelessWidget {
       future: DatabaseHelper.instance.getHabitStats(habit.id!),
       builder: (context, snapshot) {
         final daysCompleted = snapshot.data?['completed'] ?? 0;
-        final daysMissed = snapshot.data?['missed'] ?? 0;
         final totalDays = snapshot.data?['total_days'] ?? 0;
         final progress = (totalDays > 0) ? daysCompleted / totalDays : 0.0;
 
@@ -216,7 +215,7 @@ class _HabitCard extends StatelessWidget {
 
         final completionHistory = snapshot.data!;
         final Set<String> completedDates = completionHistory
-            .where((record) => record['correct'] == 1)
+            .where((record) => record['completed'] == 1)
             .map<String>((record) => record['date'] as String)
             .toSet();
 
