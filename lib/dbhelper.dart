@@ -131,15 +131,71 @@ class DatabaseHelper {
 
   Future<Map<String, dynamic>> getHabitStats(int habitId) async {
     final db = await database;
-    final result = await db.rawQuery('''
-      SELECT 
-        SUM(completed) as completed,
-        COUNT(*) as total_days
-      FROM stats
-      WHERE habit_id = ?
-    ''', [habitId]);
 
-    return result.first;
+    // Get completed and total days from DB
+    final result = await db.rawQuery('''
+    SELECT 
+      SUM(completed) as completed,
+      COUNT(*) as total_days
+    FROM stats
+    WHERE habit_id = ?
+  ''', [habitId]);
+
+    // Get all records ordered by date
+    final streakResult = await db.rawQuery('''
+    SELECT date, completed
+    FROM stats
+    WHERE habit_id = ?
+    ORDER BY date ASC
+  ''', [habitId]);
+
+    int maxStreak = 0;
+    int currentStreak = 0;
+    int tempStreak = 0;
+
+    DateTime? previousDate;
+
+    for (var row in streakResult) {
+      final completed = row['completed'] == 1;
+      final date = DateTime.parse(row['date'] as String);
+
+      if (completed) {
+        if (previousDate == null ||
+            date.difference(previousDate).inDays == 1) {
+          // continue streak
+          tempStreak++;
+        } else {
+          // reset streak
+          tempStreak = 1;
+        }
+
+        maxStreak = tempStreak > maxStreak ? tempStreak : maxStreak;
+      } else {
+        tempStreak = 0;
+      }
+
+      previousDate = date;
+    }
+
+    // Now calculate current streak (starting from most recent date backward)
+    currentStreak = 0;
+    for (int i = streakResult.length - 1; i >= 0; i--) {
+      final row = streakResult[i];
+      final completed = row['completed'] == 1;
+      if (completed) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+
+    final data = result.first;
+    return {
+      'completed': data['completed'] ?? 0,
+      'total_days': data['total_days'] ?? 0,
+      'max_streak': maxStreak,
+      'current_streak': currentStreak,
+    };
   }
 
   Future close() async {

@@ -89,10 +89,10 @@ class _HabitTrackerState extends State<HabitTracker> {
             child: GridView.builder(
               padding: EdgeInsets.all(16),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+                crossAxisCount: 1,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 1.2,
+                childAspectRatio: _timeRange == 'Overall' ? 2 : 4.4,
               ),
               itemCount: _habits.length,
               itemBuilder: (context, index) {
@@ -175,19 +175,10 @@ class _HabitCard extends StatelessWidget {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 8),
                   timeRange == 'Overall'
                       ? _buildGitHubStyleGrid(context)
                       : Column(
                     children: [
-                      Text(
-                        '$daysCompleted Days',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      SizedBox(height: 8),
                       LinearProgressIndicator(
                         value: progress,
                         minHeight: 8,
