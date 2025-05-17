@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'addhabit.dart';
@@ -239,7 +241,10 @@ class _HabitCard extends StatelessWidget {
             .toSet();
 
         const int numRows = 7; // Sunday to Saturday
-        const int numColumns = 6; // last 6 weeks
+        final int numCompleted = completedDates.length;
+        final int weeksNeeded = (numCompleted / 7).ceil() + 1;
+        const int minColumns = 12;
+        final int numColumns = max(minColumns, weeksNeeded);
 
         final DateTime today = DateTime.now();
         // Find most recent Sunday
