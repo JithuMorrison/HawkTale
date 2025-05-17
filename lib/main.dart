@@ -243,15 +243,13 @@ class _HabitCard extends StatelessWidget {
         const int numRows = 7; // Sunday to Saturday
         final int numCompleted = completedDates.length;
         final int weeksNeeded = (numCompleted / 7).ceil() + 1;
-        const int minColumns = 12;
+        const int minColumns = 20;
         final int numColumns = max(minColumns, weeksNeeded);
 
         final DateTime today = DateTime.now();
-        // Find most recent Sunday
-        final int weekdayOffset = today.weekday % 7; // Sunday = 0
+        final int weekdayOffset = today.weekday % 7;
         final DateTime lastSunday = today.subtract(Duration(days: weekdayOffset));
 
-        // Generate dates: left to right columns, top to bottom rows (Sunday to Saturday)
         final List<DateTime> allDates = List.generate(
           numColumns * numRows,
               (index) {
@@ -261,28 +259,31 @@ class _HabitCard extends StatelessWidget {
           },
         );
 
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(numColumns, (colIndex) {
-            return Column(
-              children: List.generate(numRows, (rowIndex) {
-                final index = colIndex * numRows + rowIndex;
-                if (index >= allDates.length) return SizedBox(height: 14);
-                final date = allDates[index];
-                final isCompleted = completedDates.contains(date.toIso8601String().split('T')[0]);
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: List.generate(numColumns, (colIndex) {
+              return Column(
+                children: List.generate(numRows, (rowIndex) {
+                  final index = colIndex * numRows + rowIndex;
+                  if (index >= allDates.length) return SizedBox(height: 14);
+                  final date = allDates[index];
+                  final isCompleted = completedDates.contains(date.toIso8601String().split('T')[0]);
 
-                return Container(
-                  width: 12,
-                  height: 12,
-                  margin: EdgeInsets.all(1),
-                  decoration: BoxDecoration(
-                    color: isCompleted ? Colors.green : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                );
-              }),
-            );
-          }),
+                  return Container(
+                    width: 12,
+                    height: 12,
+                    margin: EdgeInsets.all(1),
+                    decoration: BoxDecoration(
+                      color: isCompleted ? Colors.green : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  );
+                }),
+              );
+            }),
+          ),
         );
       },
     );
