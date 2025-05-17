@@ -159,6 +159,14 @@ class _HabitCard extends StatelessWidget {
         final totalDays = snapshot.data?['total_days'] ?? 0;
         final currentStreak = snapshot.data?['current_streak'] ?? 0;
         final progress = (daysCompleted > 0) ? currentStreak / daysCompleted : 0.0;
+        final List<dynamic> historyList = snapshot.data?['history'] ?? [];
+        final Set<String> completedDates = historyList
+            .where((record) => record['completed'] == 1)
+            .map<String>((record) => record['date'] as String)
+            .toSet();
+
+        final String todayStr = DateTime.now().toIso8601String().split('T')[0];
+        final bool isTodayCompleted = completedDates.contains(todayStr);
 
         return GestureDetector(
           onTap: onTap,
@@ -200,7 +208,7 @@ class _HabitCard extends StatelessWidget {
                           currentStreak > 0
                               ? Icons.local_fire_department
                               : Icons.check_circle_outline,
-                          color: currentStreak > 0 ? Colors.orange : Colors.red,
+                          color: currentStreak > 0 ? (isTodayCompleted ? Colors.orange : Colors.green) : Colors.red,
                           size: 28,
                         ),
                         onPressed: () {

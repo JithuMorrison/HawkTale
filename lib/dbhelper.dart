@@ -195,6 +195,7 @@ class DatabaseHelper {
       'total_days': data['total_days'] ?? 0,
       'max_streak': maxStreak,
       'current_streak': currentStreak,
+      'history': streakResult,
     };
   }
 
