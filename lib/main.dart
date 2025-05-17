@@ -112,6 +112,9 @@ class _HabitTrackerState extends State<HabitTracker> {
         child: Icon(Icons.add),
         onPressed: () => _showAddHabitDialog(),
       ),
+      floatingActionButtonLocation: _timeRange == 'Overall'
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -278,6 +281,13 @@ class _HabitCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isCompleted ? Colors.green : Colors.grey[300],
                       borderRadius: BorderRadius.circular(2),
+                      border: date.year == today.year &&
+                          date.month == today.month &&
+                          date.day == today.day
+                          ? Border.all(
+                        color: isCompleted ? Colors.blue : Colors.red,
+                        width: 2,
+                      ) : null,
                     ),
                   );
                 }),
