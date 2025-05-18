@@ -177,61 +177,74 @@ class _HabitCard extends StatelessWidget {
             ),
             child: Padding(
               padding: EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     habit.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  timeRange == 'Overall'
-                      ? _buildGitHubStyleGrid(context)
-                      : Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 8,
-                          backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  SizedBox(height: 12),
+                  if (timeRange == 'Overall')
+                    _buildGitHubStyleGrid(context)
+                  else if (timeRange == 'Weekly')
+                    _buildWeeklyCircles(completedDates)
+                  else if (timeRange == 'Monthly')
+                      _buildMonthlyGrid(completedDates),
+                  if (timeRange == 'Today') ...[
+                    SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 8,
+                            backgroundColor: Colors.grey[200],
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 5),
-                      IconButton(
-                        icon: Icon(
-                          currentStreak > 0
-                              ? Icons.local_fire_department
-                              : Icons.check_circle_outline,
-                          color: currentStreak > 0 ? (isTodayCompleted ? Colors.orange : Colors.green) : Colors.red,
-                          size: 28,
-                        ),
-                        onPressed: () {
-                          // Optional: Show a tooltip or streak info
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                currentStreak > 0
-                                    ? '🔥 Current Streak: $currentStreak days'
-                                    : '✔️ No current streak',
+                        SizedBox(width: 5),
+                        IconButton(
+                          icon: Icon(
+                            currentStreak > 0
+                                ? Icons.local_fire_department
+                                : Icons.check_circle_outline,
+                            color: currentStreak > 0
+                                ? (isTodayCompleted ? Colors.orange : Colors.green)
+                                : Colors.red,
+                            size: 28,
+                          ),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  currentStreak > 0
+                                      ? '🔥 Current Streak: $currentStreak days'
+                                      : '✔️ No current streak',
+                                ),
+                                duration: Duration(seconds: 2),
                               ),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        tooltip: currentStreak > 0 ? 'Current Streak' : 'No Streak',
-                      ),
-                    ],
-                  ),
+                            );
+                          },
+                          tooltip: currentStreak > 0 ? 'Current Streak' : 'No Streak',
+                        ),
+                      ],
+                    ),
+                  ]
                 ],
               ),
             ),
           ),
+        ),
+        ),
         );
       },
     );
@@ -304,6 +317,72 @@ class _HabitCard extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildWeeklyCircles(Set<String> completedDates) {
+    final today = DateTime.now();
+    final List<DateTime> last7Days = List.generate(7, (i) => today.subtract(Duration(days: 6 - i)));
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: last7Days.map((date) {
+        final dateStr = date.toIso8601String().split('T')[0];
+        final isCompleted = completedDates.contains(dateStr);
+        return Column(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCompleted ? Colors.green : Colors.grey[300],
+              ),
+              child: Center(
+                child: Icon(
+                  isCompleted ? Icons.check : Icons.close,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              ['S', 'M', 'T', 'W', 'T', 'F', 'S'][date.weekday % 7],
+              style: TextStyle(fontSize: 12),
+            )
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMonthlyGrid(Set<String> completedDates) {
+    final today = DateTime.now();
+    final DateTime firstDayOfMonth = DateTime(today.year, today.month - 1, 1);
+    final int daysInMonth = DateTime(today.year, today.month, 0).day;
+
+    final List<DateTime> monthDates = List.generate(
+      daysInMonth,
+          (i) => DateTime(firstDayOfMonth.year, firstDayOfMonth.month, i + 1),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: monthDates.map((date) {
+          final isCompleted = completedDates.contains(date.toIso8601String().split('T')[0]);
+          return Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              color: isCompleted ? Colors.green : Colors.grey[300],
+              borderRadius: BorderRadius.circular(3),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
