@@ -94,7 +94,7 @@ class _HabitTrackerState extends State<HabitTracker> {
                 crossAxisCount: 1,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: _timeRange == 'Overall' ? 2 : 3,
+                childAspectRatio: _timeRange == 'Overall' ? 2 : (_timeRange == 'Monthly' ? 2.5 : 3),
               ),
               itemCount: _habits.length,
               itemBuilder: (context, index) {
@@ -114,7 +114,7 @@ class _HabitTrackerState extends State<HabitTracker> {
       ),
       floatingActionButtonLocation: _timeRange == 'Overall'
           ? FloatingActionButtonLocation.startFloat
-          : FloatingActionButtonLocation.endFloat,
+          : FloatingActionButtonLocation.startFloat,
     );
   }
 
@@ -191,7 +191,6 @@ class _HabitCard extends StatelessWidget {
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 12),
                   if (timeRange == 'Overall')
                     _buildGitHubStyleGrid(context)
                   else if (timeRange == 'Weekly')
@@ -199,7 +198,6 @@ class _HabitCard extends StatelessWidget {
                   else if (timeRange == 'Monthly')
                       _buildMonthlyGrid(completedDates),
                   if (timeRange == 'Today') ...[
-                    SizedBox(height: 10),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -358,8 +356,8 @@ class _HabitCard extends StatelessWidget {
 
   Widget _buildMonthlyGrid(Set<String> completedDates) {
     final today = DateTime.now();
-    final DateTime firstDayOfMonth = DateTime(today.year, today.month - 1, 1);
-    final int daysInMonth = DateTime(today.year, today.month, 0).day;
+    final DateTime firstDayOfMonth = DateTime(today.year, today.month, 1);
+    final int daysInMonth = DateTime(today.year, today.month + 1, 0).day;
 
     final List<DateTime> monthDates = List.generate(
       daysInMonth,
